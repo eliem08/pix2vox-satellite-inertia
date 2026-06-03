@@ -1,0 +1,13 @@
+# Pix2Vox (satellite) - Python dependencies
+#
+# IMPORTANT: install PyTorch SEPARATELY with the matching CPU wheels first:
+#   pip install torch==2.2.1 torchvision==0.17.1 --index-url https://download.pytorch.org/whl/cpu
+#
+# NumPy MUST be < 2: the OpenCV / Torch builds used here were compiled against NumPy 1.x.
+numpy<2
+opencv-python>=4.9,<4.11
+matplotlib
+easydict
+tensorboardX
+scipy
+pillow
