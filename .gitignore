@@ -110,7 +110,10 @@ datasets/
 output/
 output_local/
 output_smoke/
+output_better/
+output_mvtest/
 .torch_cache/
+*.log
 
 # Trained weights & large binaries (share via GitHub Releases or Git LFS, not git)
 *.pth
@@ -119,6 +122,7 @@ output_smoke/
 
 # Generated artifacts (regenerate with batch_infer_inertia.py)
 report_assets/
+report_assets_v2/
 *.npy
 
 # Local datasets (kept outside the repo by default)
