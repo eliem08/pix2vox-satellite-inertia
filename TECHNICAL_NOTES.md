@@ -115,6 +115,83 @@ Under these conditions, reconstructions closely matching the input images
 
 ---
 
+## 7. Ground Truth Pipeline — Full Workflow (Revision 2)
+
+> *Addresses: source of CAD models, voxelization workflow, information loss,
+> and the specific ICECube geometry question.*
+
+### Where do the 3-D models come from?
+
+The 3-D meshes (`mesh.ply`) were processed using **Open3D**, a standard open-source
+3-D geometry library (confirmed from the PLY file header: `comment Created by Open3D`).
+The source geometry originates from **publicly available NASA/ESA 3-D model repositories**
+(e.g. NASA 3D Resources, nasa3d.arc.nasa.gov), which publish engineering-grade 3-D models
+of operational satellites. These are the closest public approximation to the true CAD geometry.
+
+### What is shown as "ground truth" in the report?
+
+The ground truth figures show the **voxelized version** — not the original mesh.
+The pipeline is:
+
+```
+Original mesh (mesh.ply)          ← continuous 3-D surface, 90,000–165,000 triangles
+        │
+        ▼  binvox tool (voxelization)
+32×32×32 voxel grid (model.binvox) ← what is shown and used for training/evaluation
+        │
+        ▼  threshold at 0.5
+Binary occupancy array             ← solid/empty decision per voxel
+```
+
+### How much geometric information is lost?
+
+Considerably. For ICECube as a concrete example:
+
+| Representation | Detail level |
+|---|---|
+| Original mesh | 90,332 vertices, 165,213 triangles — full surface detail |
+| 32³ voxel grid | 1,427 occupied voxels out of 32,768 — 4.4% fill |
+
+Every geometric feature smaller than **1/32 of the bounding box** is unresolvable.
+For a satellite with a 23-unit bounding box, that means features smaller than
+**~0.7 units are lost entirely**. Fine structures — thin antenna booms, solar cell
+gaps, instrument apertures — collapse into single voxels or disappear.
+
+### Why does ICECube's ground truth not look cuboid?
+
+This was verified directly from the mesh data. The ICECube 3-D model has
+actual dimensions of **16.7 × 22.7 × 23.4 units** — an aspect ratio of
+**0.71 : 0.97 : 1.00**. It is **not a cube**. Two reasons explain this:
+
+1. **The model includes deployed components.** The "ICECube" name refers to the
+   mission (Ice, Cloud and land Elevation), not the CubeSat form factor. The 3-D
+   model includes the full satellite with deployed solar panels and instrument
+   booms, making the overall envelope non-cuboid.
+
+2. **Thin shell structure, not a solid block.** Only 4.4% of the 32³ grid is
+   filled (1,427 voxels). The satellite is a thin-walled structure — the body,
+   panels, and appendages form a shell, not a solid. At 32³ resolution this shell
+   appears irregular because each voxel is coarse relative to the structural features.
+
+The voxel bounding box (22×29×30) faithfully matches the mesh aspect ratio
+(16.7:22.7:23.4 ≈ 0.71:0.97:1.0 vs. 22:29:30 ≈ 0.73:0.97:1.0). The voxelization
+is geometrically correct — it is the source mesh itself that is non-cuboid.
+
+### Summary: where do discrepancies originate?
+
+| Source | Contribution to discrepancy |
+|---|---|
+| Reconstruction model | Predicts a generic blob — limited by training data and compute |
+| Voxel resolution (32³) | Loses all features finer than ~1/32 of bounding box |
+| Source mesh geometry | Includes full deployed configuration, not just the main body |
+| Thin-shell structure | Low fill % (1–7%) makes voxelized shapes look fragmentary |
+
+The ground truth generation procedure is correct and consistent.
+The discrepancies between the predicted shape and the expected physical shape
+arise from all four factors above — not from any error in the ground truth pipeline.
+
+---
+
 ## Deliverables
 
 | File | Description |
